@@ -24,11 +24,12 @@ class PostDetailView(DetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not request.user.is_authenticated:
-            return redirect('login')
-
         form = CommentForm(request.POST)
-        if form.is_valid():
+
+        # Make the form invalid for anonymous users instead of redirecting
+        if not request.user.is_authenticated:
+            form.add_error(None, "You must be authorized to post a comment.")
+        elif form.is_valid():
             comment = form.save(commit=False)
             comment.post = self.object
             comment.user = request.user
